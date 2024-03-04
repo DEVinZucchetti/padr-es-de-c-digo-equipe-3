@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\UpdatePetRequest;
+use App\Http\Services\Pet\UpdateOnePetService;
+use App\Http\Services\Race\GetOnePetService;
 use App\Mail\SendWelcomePet;
 use Illuminate\Support\Str;
 use App\Models\File;
@@ -81,7 +84,7 @@ class PetController extends Controller
     public function store(Request $request)
     {
         try {
-            // rebecer os dados via body
+            // receber os dados via body
             $data = $request->all();
 
             $request->validate([
@@ -121,9 +124,9 @@ class PetController extends Controller
         return $this->response('', Response::HTTP_NO_CONTENT);
     }
 
-    public function show($id)
+    public function show($id, GetOnePetService $getOnePetService)
     {
-        $pet = Pet::find($id);
+        $pet = $getOnePetService->handle($id);
 
         if (!$pet) return $this->error('Dado não encontrado', Response::HTTP_NOT_FOUND);
 
@@ -131,29 +134,15 @@ class PetController extends Controller
     }
 
 
-    public function update($id, Request $request)
+    public function update($id, UpdatePetRequest $request, UpdateOnePetService $updateOnePetService)
     {
-        $data = $request->all();
-
-        $pet = Pet::find($id);
-
-        if (!$pet) return $this->error('Dado não encontrado', Response::HTTP_NOT_FOUND);
-
-        $request->validate([
-            'name' => 'string|max:150',
-            'age' => 'int',
-            'weight' => 'numeric',
-            'size' => 'string|in:SMALL,MEDIUM,LARGE,EXTRA_LARGE', // melhorar validacao para enum
-            'race_id' => 'int',
-            'specie_id' => 'int',
-            'client_id' => 'int'
-        ]);
-
-        $pet->update($data);
-
-        $pet->save();
-
-        return $pet;
+        try{
+            $data = $request->all();
+            $pet = $updateOnePetService->handle($id, $data);
+            return $pet;
+        } catch(\Exception $exception){
+            return $this->error($exception->getMessage(), Response::HTTP_BAD_REQUEST);
+        }
     }
 
     public function upload(Request $request)

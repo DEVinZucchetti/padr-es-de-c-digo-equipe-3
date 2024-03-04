@@ -3,32 +3,34 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Repositories\RaceRepository;
+use App\Http\Services\Race\CreateRaceService;
+use App\Http\Services\Race\GetAllRacesService;
 use App\Models\Race;
 use App\Traits\HttpResponses;
 use Exception;
-use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 class RaceController extends Controller
 {
     use HttpResponses;
+    private $raceRepository;
 
+    public function __construct(RaceRepository $raceRepository) {
+        $this->raceRepository = $raceRepository;
+    }
     // Lista todos ou parcialmente os dados de um recurso
-    public function index() {
-        $races = Race::all();
+    public function index(GetAllRacesService $getAllRacesService) {
+        $races = $getAllRacesService->handle();
         return $races;
     }
 
-    public function store(Request $request)
+    public function store(Request $request, CreateRaceService $createRaceService)
     {
         try {
-            $request->validate([
-                'name' => 'required|string|unique:races|max:50'
-            ]);
 
             $data = $request->all();
-
-            $race = Race::create($data);
+            $race = $createRaceService->handle($data);
 
             return $race;
         } catch (Exception $exception) {

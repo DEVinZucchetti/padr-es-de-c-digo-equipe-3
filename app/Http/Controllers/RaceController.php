@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Repositories\RaceRepository;
 use App\Models\Race;
 use App\Traits\HttpResponses;
 use Exception;
@@ -13,9 +14,15 @@ class RaceController extends Controller
 {
     use HttpResponses;
 
+    private $raceRepository;
+
+    public function __construct(RaceRepository $raceRepository) { 
+        $this->raceRepository = $raceRepository;       
+    }
+
     // Lista todos ou parcialmente os dados de um recurso
     public function index() {
-        $races = Race::all();
+        $races = $this->raceRepository->getAll();
         return $races;
     }
 
@@ -26,9 +33,9 @@ class RaceController extends Controller
                 'name' => 'required|string|unique:races|max:50'
             ]);
 
-            $data = $request->all();
+            $body = $request->all();
 
-            $race = Race::create($data);
+            $race = $this->raceRepository->create($body);
 
             return $race;
         } catch (Exception $exception) {

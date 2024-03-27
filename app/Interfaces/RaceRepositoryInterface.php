@@ -1,10 +1,8 @@
-<?php 
+<?php
+
 namespace App\Interfaces;
 
-use App\Models\Race;
-
-interface RaceRepositoryInterface{
+interface RaceRepositoryInterface {
     public function getAll();
-    public function create(array $data):Race;   
-
+    public function create(array $data);
 }
